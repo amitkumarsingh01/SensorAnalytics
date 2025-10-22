@@ -53,7 +53,7 @@ const Dashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Sensor Analytics Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Solarithm Dashboard</h1>
         <p className="text-gray-600">Real-time monitoring of temperature, humidity, voltage, and LDR sensors</p>
         <div className="flex items-center mt-4">
           <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>

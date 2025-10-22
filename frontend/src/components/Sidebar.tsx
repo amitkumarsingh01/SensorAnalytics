@@ -46,7 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         lg:translate-x-0
       `}>
         <div className="flex items-center justify-between p-6 border-b">
-          <h1 className="text-xl font-bold text-gray-800">Sensor Analytics</h1>
+          <h1 className="text-xl font-bold text-gray-800">Solarithm</h1>
           <button
             onClick={() => setIsOpen(false)}
             className="lg:hidden p-2 rounded-md hover:bg-gray-100"

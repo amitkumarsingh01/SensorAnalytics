@@ -23,7 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             <Menu className="w-6 h-6 text-gray-600" />
           </button>
-          <h1 className="text-lg font-semibold text-gray-800">Sensor Analytics</h1>
+          <h1 className="text-lg font-semibold text-gray-800">Solarithm</h1>
           <div className="w-10"></div> {/* Spacer for centering */}
         </div>
 
