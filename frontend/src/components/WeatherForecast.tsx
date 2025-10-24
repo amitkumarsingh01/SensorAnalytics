@@ -73,10 +73,10 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({
           <div>
             <h4 className="text-sm opacity-90 mb-1">Current Weather</h4>
             <div className="flex items-center">
-              <span className="text-3xl font-bold">{Math.round(current.temp)}°C</span>
+              <span className="text-3xl font-bold">{Math.round(current.main.temp)}°C</span>
               <div className="ml-3">
                 <div className="text-sm opacity-90">{current.weather[0].description}</div>
-                <div className="text-xs opacity-75">Feels like {Math.round(current.feels_like)}°C</div>
+                <div className="text-xs opacity-75">Feels like {Math.round(current.main.feels_like)}°C</div>
               </div>
             </div>
           </div>
@@ -93,11 +93,11 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm">
           <div className="flex items-center">
             <Droplets className="w-4 h-4 mr-2 opacity-80" />
-            <span>{current.humidity}%</span>
+            <span>{current.main.humidity}%</span>
           </div>
           <div className="flex items-center">
             <Wind className="w-4 h-4 mr-2 opacity-80" />
-            <span>{current.wind_speed} m/s</span>
+            <span>{current.wind.speed} m/s</span>
           </div>
           <div className="flex items-center">
             <Eye className="w-4 h-4 mr-2 opacity-80" />
@@ -105,20 +105,22 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({
           </div>
           <div className="flex items-center">
             <Gauge className="w-4 h-4 mr-2 opacity-80" />
-            <span>{current.pressure} hPa</span>
+            <span>{current.main.pressure} hPa</span>
           </div>
         </div>
       </div>
 
       {/* 7-Day Forecast */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-4">7-Day Forecast</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-4">7-Day Forecast for Bangalore</h4>
         <div className="space-y-3">
           {daily.slice(0, 7).map((day, index) => (
             <div key={day.dt} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
               <div className="flex items-center">
-                <div className="w-12 text-sm font-medium text-gray-700">
-                  {index === 0 ? 'Today' : OpenWeatherAPI.formatDate(day.dt)}
+                <div className="w-16 text-sm font-medium text-gray-700">
+                  {index === 0 ? 'Today' : 
+                   index === 1 ? 'Tomorrow' : 
+                   OpenWeatherAPI.formatDate(day.dt)}
                 </div>
                 <div className="ml-4">
                   <div className="text-2xl">
@@ -126,9 +128,9 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({
                   </div>
                 </div>
                 <div className="ml-4">
-                  <div className="text-sm text-gray-600">{day.weather[0].description}</div>
+                  <div className="text-sm text-gray-600 capitalize">{day.weather[0].description}</div>
                   <div className="text-xs text-gray-500">
-                    {Math.round(day.pop * 100)}% chance of rain
+                    {day.name || `Day ${index + 1}`}
                   </div>
                 </div>
               </div>
@@ -136,15 +138,18 @@ const WeatherForecast: React.FC<WeatherForecastProps> = ({
               <div className="flex items-center space-x-4 text-sm">
                 <div className="flex items-center space-x-2">
                   <Wind className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-600">{day.wind_speed} m/s</span>
+                  <span className="text-gray-600">{Math.round(day.wind.speed)} m/s</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Droplets className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-600">{day.humidity}%</span>
+                  <span className="text-gray-600">{Math.round(day.main.humidity)}%</span>
                 </div>
                 <div className="text-right">
                   <div className="font-semibold text-gray-900">
-                    {Math.round(day.temp.max)}°/{Math.round(day.temp.min)}°
+                    {Math.round(day.main.temp)}°C
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Feels like {Math.round(day.main.feels_like)}°C
                   </div>
                 </div>
               </div>

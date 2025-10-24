@@ -128,13 +128,13 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Weather Widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <WeatherWidget 
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+        {/* <WeatherWidget 
           weatherData={weatherData}
           isLoading={weatherLoading}
           error={weatherError}
           onRefresh={refetchWeather}
-        />
+        /> */}
         <WeatherForecast 
           weatherData={openWeatherData}
           isLoading={openWeatherLoading}

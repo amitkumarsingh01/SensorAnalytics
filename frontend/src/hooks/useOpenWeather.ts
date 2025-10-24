@@ -9,7 +9,7 @@ interface UseOpenWeatherReturn {
   refetch: () => void;
 }
 
-export const useOpenWeather = (latitude: number = 12.933756, longitude: number = 77.625825): UseOpenWeatherReturn => {
+export const useOpenWeather = (latitude: number = 12.9716, longitude: number = 77.5946): UseOpenWeatherReturn => {
   const [weatherData, setWeatherData] = useState<OpenWeatherResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
