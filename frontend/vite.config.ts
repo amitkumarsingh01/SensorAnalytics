@@ -32,7 +32,7 @@ export default defineConfig({
             const apiUrl = new URL('/data/2.5/weather', 'https://api.openweathermap.org');
             apiUrl.searchParams.set('lat', lat || '12.933756');
             apiUrl.searchParams.set('lon', lon || '77.625825');
-            apiUrl.searchParams.set('appid', process.env.VITE_OPENWEATHER_API_KEY || 'a553ca1c4b774cfdb9f71012252410');
+            apiUrl.searchParams.set('appid', process.env.VITE_OPENWEATHER_API_KEY || 'ef7f95ba032ed07cc1cd62e6fc657d4a');
             apiUrl.searchParams.set('units', 'metric');
             
             proxyReq.path = apiUrl.pathname + apiUrl.search;

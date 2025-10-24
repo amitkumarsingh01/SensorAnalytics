@@ -14,21 +14,19 @@ export interface WeatherData {
   };
 }
 
-// Use direct API URL in production, proxy in development
-const WEATHER_API_URL = import.meta.env.DEV ? '/api/weather' : 'https://www.weatherunion.com/gw/weather/external/v0/get_weather_data';
+// Use Vercel API route to avoid CORS issues
+const WEATHER_API_URL = '/api/weather';
 
 export class WeatherAPI {
   static async fetchWeatherData(latitude: number = 12.933756, longitude: number = 77.625825): Promise<WeatherData> {
     try {
-      const url = import.meta.env.DEV 
-        ? `${WEATHER_API_URL}?latitude=${latitude}&longitude=${longitude}`
-        : `${WEATHER_API_URL}?latitude=${latitude}&longitude=${longitude}`;
+      const url = `${WEATHER_API_URL}?latitude=${latitude}&longitude=${longitude}`;
       
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          ...(import.meta.env.PROD && { 'x-zomato-api-key': '836c2e57ca92b87556bc4141b9915ba3' }),
+          'x-zomato-api-key': '836c2e57ca92b87556bc4141b9915ba3',
         },
       });
 

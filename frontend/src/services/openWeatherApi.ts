@@ -33,17 +33,14 @@ export interface OpenWeatherResponse {
   timezone_offset: number;
 }
 
-// Use direct API URL in production, proxy in development
-const OPENWEATHER_API_URL = import.meta.env.DEV ? '/api/openweather' : 'https://api.openweathermap.org/data/2.5/weather';
+// Use Vercel API route to avoid CORS issues
+const OPENWEATHER_API_URL = '/api/openweather';
 
 export class OpenWeatherAPI {
   static async fetchWeatherData(latitude: number = 12.9716, longitude: number = 77.5946): Promise<OpenWeatherResponse> {
     try {
-      // Build URL with API key for production
-      const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY || 'a553ca1c4b774cfdb9f71012252410';
-      const url = import.meta.env.DEV 
-        ? `${OPENWEATHER_API_URL}?lat=${latitude}&lon=${longitude}`
-        : `${OPENWEATHER_API_URL}?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
+      // Build URL for Vercel API route
+      const url = `${OPENWEATHER_API_URL}?lat=${latitude}&lon=${longitude}`;
       
       const response = await fetch(url, {
         method: 'GET',
@@ -69,74 +66,11 @@ export class OpenWeatherAPI {
       };
     } catch (error) {
       console.error('Error fetching OpenWeather data:', error);
-      
-      // Return mock data when API fails
-      return this.getMockWeatherData(latitude, longitude);
+      throw error; // Don't use mock data, throw the error
     }
   }
 
-  static getMockWeatherData(latitude: number = 12.9716, longitude: number = 77.5946): OpenWeatherResponse {
-    const now = new Date();
-    const dailyForecast: OpenWeatherCurrent[] = [];
-    
-    // Generate 7 days of forecast data for Bangalore
-    const weatherConditions = [
-      { main: 'Clear', description: 'clear sky', icon: '01d' },
-      { main: 'Clouds', description: 'few clouds', icon: '02d' },
-      { main: 'Clouds', description: 'scattered clouds', icon: '03d' },
-      { main: 'Rain', description: 'light rain', icon: '10d' },
-      { main: 'Rain', description: 'moderate rain', icon: '10d' },
-      { main: 'Thunderstorm', description: 'thunderstorm', icon: '11d' },
-      { main: 'Clear', description: 'clear sky', icon: '01d' }
-    ];
-
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(now);
-      date.setDate(date.getDate() + i);
-      
-      // Bangalore weather patterns (typical for the city)
-      const baseTemp = 22 + Math.sin(i * 0.5) * 3; // 19-25°C range
-      const tempVariation = Math.random() * 4 - 2; // ±2°C variation
-      const finalTemp = baseTemp + tempVariation;
-      
-      const condition = weatherConditions[i % weatherConditions.length];
-      
-      dailyForecast.push({
-        dt: Math.floor(date.getTime() / 1000),
-        main: {
-          temp: finalTemp,
-          feels_like: finalTemp + Math.random() * 2 - 1,
-          humidity: 60 + Math.random() * 30, // 60-90% (typical for Bangalore)
-          pressure: 1010 + Math.random() * 10 // 1010-1020 hPa
-        },
-        weather: [{
-          id: 800 + i,
-          main: condition.main,
-          description: condition.description,
-          icon: condition.icon
-        }],
-        wind: {
-          speed: 2 + Math.random() * 8, // 2-10 m/s
-          deg: Math.random() * 360
-        },
-        visibility: 8000 + Math.random() * 2000, // 8-10 km
-        sys: {
-          sunrise: Math.floor(date.getTime() / 1000) - 3600,
-          sunset: Math.floor(date.getTime() / 1000) + 3600
-        },
-        name: i === 0 ? 'Bangalore' : ''
-      });
-    }
-
-    return {
-      current: dailyForecast[0], // Today's weather
-      daily: dailyForecast,
-      lat: latitude,
-      lon: longitude,
-      timezone: 'Asia/Kolkata',
-      timezone_offset: 19800 // UTC+5:30 for Bangalore
-    };
-  }
+  // No mock data - only real API data
 
   static getWeatherIcon(iconCode: string): string {
     const iconMap: { [key: string]: string } = {
