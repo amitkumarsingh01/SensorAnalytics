@@ -91,6 +91,6 @@ export class SensorAPI {
 
   static filterDataByCount(data: SensorData[], count: number): SensorData[] {
     if (count === -1) return data; // -1 means all data
-    return data.slice(-count);
+    return data.slice(0, count); // Take first N items since API returns latest first
   }
 }
