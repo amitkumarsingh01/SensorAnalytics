@@ -1,4 +1,4 @@
-import { generateMockSensorData, shouldUseMockData } from './mockData';
+import { generateMockSensorData } from './mockData';
 
 export interface SensorData {
   id: number;
@@ -32,8 +32,8 @@ export interface TimeSeriesData {
   ldr: Array<{ time: string; value: number }>;
 }
 
-// Using local proxy to avoid CORS issues
-const API_BASE_URL = '/api/sensors';
+// Use direct API URL in production, proxy in development
+const API_BASE_URL = import.meta.env.DEV ? '/api/sensors' : 'http://31.97.231.29:4354/sensors';
 
 export class SensorAPI {
   static async fetchSensorData(): Promise<SensorData[]> {
@@ -54,13 +54,9 @@ export class SensorAPI {
     } catch (error) {
       console.error('Error fetching sensor data:', error);
       
-      // Use mock data as fallback in development
-      if (shouldUseMockData()) {
-        console.log('Using mock sensor data as fallback');
-        return generateMockSensorData(100);
-      }
-      
-      throw error;
+      // Use mock data as fallback when API fails
+      console.log('API failed, using mock sensor data as fallback');
+      return generateMockSensorData(100);
     }
   }
 

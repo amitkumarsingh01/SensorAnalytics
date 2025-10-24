@@ -33,13 +33,19 @@ export interface OpenWeatherResponse {
   timezone_offset: number;
 }
 
-// Using local proxy to avoid CORS issues
-const OPENWEATHER_API_URL = '/api/openweather';
+// Use direct API URL in production, proxy in development
+const OPENWEATHER_API_URL = import.meta.env.DEV ? '/api/openweather' : 'https://api.openweathermap.org/data/2.5/weather';
 
 export class OpenWeatherAPI {
   static async fetchWeatherData(latitude: number = 12.9716, longitude: number = 77.5946): Promise<OpenWeatherResponse> {
     try {
-      const response = await fetch(`${OPENWEATHER_API_URL}?lat=${latitude}&lon=${longitude}`, {
+      // Build URL with API key for production
+      const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY || 'a553ca1c4b774cfdb9f71012252410';
+      const url = import.meta.env.DEV 
+        ? `${OPENWEATHER_API_URL}?lat=${latitude}&lon=${longitude}`
+        : `${OPENWEATHER_API_URL}?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

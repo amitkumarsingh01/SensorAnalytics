@@ -23,7 +23,7 @@ export const generateMockSensorData = (count: number = 100): SensorData[] => {
 
 // Check if we should use mock data (when API is not available)
 export const shouldUseMockData = (): boolean => {
-  // You can modify this condition based on your needs
-  // For now, we'll use mock data when in development mode
-  return import.meta.env.DEV;
+  // Only use mock data when the real API fails
+  // This ensures we always try the real API first
+  return false; // Always try real API first
 };
