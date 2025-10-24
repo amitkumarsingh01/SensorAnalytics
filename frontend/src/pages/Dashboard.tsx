@@ -10,10 +10,8 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useSensorData } from '../hooks/useSensorData';
-import { useWeatherData } from '../hooks/useWeatherData';
 import { useOpenWeather } from '../hooks/useOpenWeather';
 import DataFilter from '../components/DataFilter';
-import WeatherWidget from '../components/WeatherWidget';
 import WeatherForecast from '../components/WeatherForecast';
 
 const Dashboard: React.FC = () => {
@@ -26,13 +24,6 @@ const Dashboard: React.FC = () => {
     setSelectedCount, 
     refetch 
   } = useSensorData();
-
-  const { 
-    weatherData, 
-    isLoading: weatherLoading, 
-    error: weatherError, 
-    refetch: refetchWeather 
-  } = useWeatherData();
 
   const { 
     weatherData: openWeatherData, 
@@ -178,56 +169,6 @@ const Dashboard: React.FC = () => {
         />
       </div>
 
-      {/* Sensor vs Weather Comparison */}
-      {weatherData && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Sensor vs Weather Comparison</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h4 className="font-semibold text-gray-700">Your Sensors</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Temperature</span>
-                  <span className="font-semibold text-red-600">
-                    {filteredData[filteredData.length - 1]?.temp}°C
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Humidity</span>
-                  <span className="font-semibold text-blue-600">
-                    {filteredData[filteredData.length - 1]?.humidity}%
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h4 className="font-semibold text-gray-700">Weather API</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Temperature</span>
-                  <span className="font-semibold text-red-600">
-                    {weatherData.locality_weather_data.temperature}°C
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Humidity</span>
-                  <span className="font-semibold text-blue-600">
-                    {weatherData.locality_weather_data.humidity}%
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <strong>Difference:</strong> Temperature difference of{' '}
-              {Math.abs((filteredData[filteredData.length - 1]?.temp || 0) - weatherData.locality_weather_data.temperature).toFixed(1)}°C,{' '}
-              Humidity difference of{' '}
-              {Math.abs((filteredData[filteredData.length - 1]?.humidity || 0) - weatherData.locality_weather_data.humidity).toFixed(1)}%
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
