@@ -75,7 +75,6 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   }
 
   const { locality_weather_data } = weatherData;
-  const weatherIcon = WeatherAPI.getWeatherIcon(locality_weather_data.temperature, locality_weather_data.rain_intensity);
   const windDirection = WeatherAPI.getWindDirection(locality_weather_data.wind_direction);
 
   return (
