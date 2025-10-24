@@ -5,7 +5,8 @@ import {
   VoltageChart, 
   LDRChart 
 } from '../components/Charts';
-import { sensorData, calculateAnalytics } from '../data/sensorData';
+import { useSensorData } from '../hooks/useSensorData';
+import DataFilter from '../components/DataFilter';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -14,11 +15,19 @@ import {
   Thermometer,
   Droplets,
   Zap,
-  Sun
+  Sun,
+  RefreshCw
 } from 'lucide-react';
 
 const AnalyticsPage: React.FC = () => {
-  const analytics = calculateAnalytics(sensorData);
+  const { 
+    analytics, 
+    isLoading, 
+    error, 
+    selectedCount, 
+    setSelectedCount, 
+    refetch 
+  } = useSensorData();
 
   const StatCard: React.FC<{
     title: string;
@@ -56,17 +65,52 @@ const AnalyticsPage: React.FC = () => {
     </div>
   );
 
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <h1 className="text-2xl font-bold text-red-900 mb-2">Error Loading Data</h1>
+          <p className="text-red-700 mb-4">{error}</p>
+          <button
+            onClick={refetch}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4 inline mr-2" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center">
-          <div className="p-3 bg-purple-500 rounded-lg mr-4">
-            <BarChart3 className="w-8 h-8 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="p-3 bg-purple-500 rounded-lg mr-4">
+              <BarChart3 className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Comprehensive Analytics</h1>
+              <p className="text-gray-600 mt-1">Advanced analytics and insights across all sensor data</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Comprehensive Analytics</h1>
-            <p className="text-gray-600 mt-1">Advanced analytics and insights across all sensor data</p>
+          <div className="flex items-center gap-4">
+            <DataFilter 
+              selectedCount={selectedCount}
+              onCountChange={setSelectedCount}
+              isLoading={isLoading}
+              compact={true}
+            />
+            <button
+              onClick={refetch}
+              disabled={isLoading}
+              className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
           </div>
         </div>
       </div>

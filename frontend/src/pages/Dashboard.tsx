@@ -6,12 +6,31 @@ import {
   Sun, 
   TrendingUp, 
   TrendingDown,
-  Activity
+  Activity,
+  RefreshCw
 } from 'lucide-react';
-import { sensorData, calculateAnalytics } from '../data/sensorData';
+import { useSensorData } from '../hooks/useSensorData';
+import { useWeatherData } from '../hooks/useWeatherData';
+import DataFilter from '../components/DataFilter';
+import WeatherWidget from '../components/WeatherWidget';
 
 const Dashboard: React.FC = () => {
-  const analytics = calculateAnalytics(sensorData);
+  const { 
+    filteredData, 
+    analytics, 
+    isLoading, 
+    error, 
+    selectedCount, 
+    setSelectedCount, 
+    refetch 
+  } = useSensorData();
+
+  const { 
+    weatherData, 
+    isLoading: weatherLoading, 
+    error: weatherError, 
+    refetch: refetchWeather 
+  } = useWeatherData();
 
   const StatCard: React.FC<{
     title: string;
@@ -49,17 +68,64 @@ const Dashboard: React.FC = () => {
     </div>
   );
 
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <h1 className="text-2xl font-bold text-red-900 mb-2">Error Loading Data</h1>
+          <p className="text-red-700 mb-4">{error}</p>
+          <button
+            onClick={refetch}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4 inline mr-2" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Solarithm Dashboard</h1>
-        <p className="text-gray-600">Real-time monitoring of temperature, humidity, voltage, and LDR sensors</p>
-        <div className="flex items-center mt-4">
-          <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
-          <span className="text-sm text-gray-600">Last updated: {sensorData[sensorData.length - 1]?.time}</span>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Solarithm Dashboard</h1>
+            <p className="text-gray-600">Real-time monitoring of temperature, humidity, voltage, and LDR sensors</p>
+            <div className="flex items-center mt-4">
+              <div className={`w-3 h-3 rounded-full mr-2 ${isLoading ? 'bg-yellow-400' : 'bg-green-400'}`}></div>
+              <span className="text-sm text-gray-600">
+                {isLoading ? 'Loading...' : `Last updated: ${filteredData[filteredData.length - 1]?.created_at || 'No data'}`}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <DataFilter 
+              selectedCount={selectedCount}
+              onCountChange={setSelectedCount}
+              isLoading={isLoading}
+              compact={true}
+            />
+            <button
+              onClick={refetch}
+              disabled={isLoading}
+              className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Weather Widget */}
+      <WeatherWidget 
+        weatherData={weatherData}
+        isLoading={weatherLoading}
+        error={weatherError}
+        onRefresh={refetchWeather}
+      />
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -97,6 +163,57 @@ const Dashboard: React.FC = () => {
         />
       </div>
 
+      {/* Sensor vs Weather Comparison */}
+      {weatherData && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Sensor vs Weather Comparison</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h4 className="font-semibold text-gray-700">Your Sensors</h4>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Temperature</span>
+                  <span className="font-semibold text-red-600">
+                    {filteredData[filteredData.length - 1]?.temp}°C
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Humidity</span>
+                  <span className="font-semibold text-blue-600">
+                    {filteredData[filteredData.length - 1]?.humidity}%
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-semibold text-gray-700">Weather API</h4>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Temperature</span>
+                  <span className="font-semibold text-red-600">
+                    {weatherData.locality_weather_data.temperature}°C
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Humidity</span>
+                  <span className="font-semibold text-blue-600">
+                    {weatherData.locality_weather_data.humidity}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Difference:</strong> Temperature difference of{' '}
+              {Math.abs((filteredData[filteredData.length - 1]?.temp || 0) - weatherData.locality_weather_data.temperature).toFixed(1)}°C,{' '}
+              Humidity difference of{' '}
+              {Math.abs((filteredData[filteredData.length - 1]?.humidity || 0) - weatherData.locality_weather_data.humidity).toFixed(1)}%
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -108,11 +225,13 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Date Range</span>
-              <span className="font-semibold">{sensorData[0]?.date}</span>
+              <span className="font-semibold">{filteredData[0]?.created_at?.split(' ')[0] || 'N/A'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Time Range</span>
-              <span className="font-semibold">{sensorData[0]?.time} - {sensorData[sensorData.length - 1]?.time}</span>
+              <span className="font-semibold">
+                {filteredData[0]?.created_at?.split(' ')[1] || 'N/A'} - {filteredData[filteredData.length - 1]?.created_at?.split(' ')[1] || 'N/A'}
+              </span>
             </div>
           </div>
         </div>
@@ -122,7 +241,7 @@ const Dashboard: React.FC = () => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-600">Current</span>
-              <span className="font-semibold text-red-600">{sensorData[sensorData.length - 1]?.temperature}°C</span>
+              <span className="font-semibold text-red-600">{filteredData[filteredData.length - 1]?.temp}°C</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Peak</span>
@@ -140,7 +259,7 @@ const Dashboard: React.FC = () => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-600">Current</span>
-              <span className="font-semibold text-blue-600">{sensorData[sensorData.length - 1]?.humidity}%</span>
+              <span className="font-semibold text-blue-600">{filteredData[filteredData.length - 1]?.humidity}%</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Peak</span>
@@ -169,11 +288,11 @@ const Dashboard: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {sensorData.slice(-5).reverse().map((reading) => (
-                <tr key={reading.sNo} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4 text-gray-900">{reading.time}</td>
+              {filteredData.slice(-5).reverse().map((reading) => (
+                <tr key={reading.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-3 px-4 text-gray-900">{reading.created_at}</td>
                   <td className="py-3 px-4">
-                    <span className="text-red-600 font-medium">{reading.temperature}°C</span>
+                    <span className="text-red-600 font-medium">{reading.temp}°C</span>
                   </td>
                   <td className="py-3 px-4">
                     <span className="text-blue-600 font-medium">{reading.humidity}%</span>

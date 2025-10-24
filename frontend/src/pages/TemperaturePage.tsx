@@ -1,11 +1,20 @@
 import React from 'react';
 import { TemperatureChart } from '../components/Charts';
-import { sensorData, calculateAnalytics } from '../data/sensorData';
-import { Thermometer, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { useSensorData } from '../hooks/useSensorData';
+import DataFilter from '../components/DataFilter';
+import { Thermometer, TrendingUp, TrendingDown, Minus, RefreshCw } from 'lucide-react';
 
 const TemperaturePage: React.FC = () => {
-  const analytics = calculateAnalytics(sensorData);
-  const latestReading = sensorData[sensorData.length - 1];
+  const { 
+    filteredData, 
+    analytics, 
+    isLoading, 
+    error, 
+    selectedCount, 
+    setSelectedCount, 
+    refetch 
+  } = useSensorData();
+  const latestReading = filteredData[filteredData.length - 1];
 
   const StatCard: React.FC<{
     title: string;
@@ -41,17 +50,52 @@ const TemperaturePage: React.FC = () => {
     </div>
   );
 
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <h1 className="text-2xl font-bold text-red-900 mb-2">Error Loading Data</h1>
+          <p className="text-red-700 mb-4">{error}</p>
+          <button
+            onClick={refetch}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4 inline mr-2" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center">
-          <div className="p-3 bg-red-500 rounded-lg mr-4">
-            <Thermometer className="w-8 h-8 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="p-3 bg-red-500 rounded-lg mr-4">
+              <Thermometer className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Temperature Analytics</h1>
+              <p className="text-gray-600 mt-1">Detailed temperature monitoring and analysis</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Temperature Analytics</h1>
-            <p className="text-gray-600 mt-1">Detailed temperature monitoring and analysis</p>
+          <div className="flex items-center gap-4">
+            <DataFilter 
+              selectedCount={selectedCount}
+              onCountChange={setSelectedCount}
+              isLoading={isLoading}
+              compact={true}
+            />
+            <button
+              onClick={refetch}
+              disabled={isLoading}
+              className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
           </div>
         </div>
       </div>
@@ -61,8 +105,8 @@ const TemperaturePage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold mb-2">Current Temperature</h2>
-            <p className="text-4xl font-bold">{latestReading?.temperature}°C</p>
-            <p className="text-sm opacity-90 mt-1">Last updated: {latestReading?.time}</p>
+            <p className="text-4xl font-bold">{latestReading?.temp}°C</p>
+            <p className="text-sm opacity-90 mt-1">Last updated: {latestReading?.created_at}</p>
           </div>
           <div className="text-right">
             <p className="text-sm opacity-90">Status</p>
@@ -114,36 +158,36 @@ const TemperaturePage: React.FC = () => {
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600">Below 26°C</span>
-                <span className="font-medium">{sensorData.filter(d => d.temperature < 26).length} readings</span>
+                <span className="font-medium">{filteredData.filter(d => d.temp < 26).length} readings</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-blue-500 h-2 rounded-full" 
-                  style={{ width: `${(sensorData.filter(d => d.temperature < 26).length / sensorData.length) * 100}%` }}
+                  style={{ width: `${(filteredData.filter(d => d.temp < 26).length / filteredData.length) * 100}%` }}
                 ></div>
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600">26°C - 27°C</span>
-                <span className="font-medium">{sensorData.filter(d => d.temperature >= 26 && d.temperature <= 27).length} readings</span>
+                <span className="font-medium">{filteredData.filter(d => d.temp >= 26 && d.temp <= 27).length} readings</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-green-500 h-2 rounded-full" 
-                  style={{ width: `${(sensorData.filter(d => d.temperature >= 26 && d.temperature <= 27).length / sensorData.length) * 100}%` }}
+                  style={{ width: `${(filteredData.filter(d => d.temp >= 26 && d.temp <= 27).length / filteredData.length) * 100}%` }}
                 ></div>
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600">Above 27°C</span>
-                <span className="font-medium">{sensorData.filter(d => d.temperature > 27).length} readings</span>
+                <span className="font-medium">{filteredData.filter(d => d.temp > 27).length} readings</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-red-500 h-2 rounded-full" 
-                  style={{ width: `${(sensorData.filter(d => d.temperature > 27).length / sensorData.length) * 100}%` }}
+                  style={{ width: `${(filteredData.filter(d => d.temp > 27).length / filteredData.length) * 100}%` }}
                 ></div>
               </div>
             </div>

@@ -1,11 +1,20 @@
 import React from 'react';
 import { LDRChart } from '../components/Charts';
-import { sensorData, calculateAnalytics } from '../data/sensorData';
-import { Sun, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { useSensorData } from '../hooks/useSensorData';
+import DataFilter from '../components/DataFilter';
+import { Sun, TrendingUp, TrendingDown, Minus, RefreshCw } from 'lucide-react';
 
 const LDRPage: React.FC = () => {
-  const analytics = calculateAnalytics(sensorData);
-  const latestReading = sensorData[sensorData.length - 1];
+  const { 
+    filteredData, 
+    analytics, 
+    isLoading, 
+    error, 
+    selectedCount, 
+    setSelectedCount, 
+    refetch 
+  } = useSensorData();
+  const latestReading = filteredData[filteredData.length - 1];
 
   const StatCard: React.FC<{
     title: string;
@@ -41,17 +50,52 @@ const LDRPage: React.FC = () => {
     </div>
   );
 
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <h1 className="text-2xl font-bold text-red-900 mb-2">Error Loading Data</h1>
+          <p className="text-red-700 mb-4">{error}</p>
+          <button
+            onClick={refetch}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4 inline mr-2" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center">
-          <div className="p-3 bg-orange-500 rounded-lg mr-4">
-            <Sun className="w-8 h-8 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="p-3 bg-orange-500 rounded-lg mr-4">
+              <Sun className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">LDR (Light) Analytics</h1>
+              <p className="text-gray-600 mt-1">Detailed light-dependent resistor monitoring and analysis</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">LDR (Light) Analytics</h1>
-            <p className="text-gray-600 mt-1">Detailed light-dependent resistor monitoring and analysis</p>
+          <div className="flex items-center gap-4">
+            <DataFilter 
+              selectedCount={selectedCount}
+              onCountChange={setSelectedCount}
+              isLoading={isLoading}
+              compact={true}
+            />
+            <button
+              onClick={refetch}
+              disabled={isLoading}
+              className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
           </div>
         </div>
       </div>
@@ -62,7 +106,7 @@ const LDRPage: React.FC = () => {
           <div>
             <h2 className="text-lg font-semibold mb-2">Current Light Level</h2>
             <p className="text-4xl font-bold">{latestReading?.ldr}%</p>
-            <p className="text-sm opacity-90 mt-1">Last updated: {latestReading?.time}</p>
+            <p className="text-sm opacity-90 mt-1">Last updated: {latestReading?.created_at}</p>
           </div>
           <div className="text-right">
             <p className="text-sm opacity-90">Status</p>
@@ -114,36 +158,36 @@ const LDRPage: React.FC = () => {
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600">Low Light (0-50%)</span>
-                <span className="font-medium">{sensorData.filter(d => d.ldr <= 50).length} readings</span>
+                <span className="font-medium">{filteredData.filter(d => d.ldr <= 50).length} readings</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-blue-500 h-2 rounded-full" 
-                  style={{ width: `${(sensorData.filter(d => d.ldr <= 50).length / sensorData.length) * 100}%` }}
+                  style={{ width: `${(filteredData.filter(d => d.ldr <= 50).length / filteredData.length) * 100}%` }}
                 ></div>
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600">Medium Light (50-80%)</span>
-                <span className="font-medium">{sensorData.filter(d => d.ldr > 50 && d.ldr <= 80).length} readings</span>
+                <span className="font-medium">{filteredData.filter(d => d.ldr > 50 && d.ldr <= 80).length} readings</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-yellow-500 h-2 rounded-full" 
-                  style={{ width: `${(sensorData.filter(d => d.ldr > 50 && d.ldr <= 80).length / sensorData.length) * 100}%` }}
+                  style={{ width: `${(filteredData.filter(d => d.ldr > 50 && d.ldr <= 80).length / filteredData.length) * 100}%` }}
                 ></div>
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600">High Light (80-100%)</span>
-                <span className="font-medium">{sensorData.filter(d => d.ldr > 80).length} readings</span>
+                <span className="font-medium">{filteredData.filter(d => d.ldr > 80).length} readings</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-orange-500 h-2 rounded-full" 
-                  style={{ width: `${(sensorData.filter(d => d.ldr > 80).length / sensorData.length) * 100}%` }}
+                  style={{ width: `${(filteredData.filter(d => d.ldr > 80).length / filteredData.length) * 100}%` }}
                 ></div>
               </div>
             </div>

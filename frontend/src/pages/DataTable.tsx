@@ -1,21 +1,31 @@
 import React, { useState } from 'react';
-import { sensorData } from '../data/sensorData';
-import { Search, Download, Filter } from 'lucide-react';
+import { useSensorData } from '../hooks/useSensorData';
+import DataFilter from '../components/DataFilter';
+import { Search, Download, Filter, RefreshCw } from 'lucide-react';
 
 const DataTable: React.FC = () => {
+  const { 
+    filteredData, 
+    isLoading, 
+    error, 
+    selectedCount, 
+    setSelectedCount, 
+    refetch 
+  } = useSensorData();
+  
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState<keyof typeof sensorData[0]>('sNo');
+  const [sortField, setSortField] = useState<keyof typeof filteredData[0]>('id');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  const filteredData = sensorData.filter(item =>
-    item.time.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.temperature.toString().includes(searchTerm) ||
+  const searchFilteredData = filteredData.filter(item =>
+    item.created_at.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.temp.toString().includes(searchTerm) ||
     item.humidity.toString().includes(searchTerm) ||
     item.voltage.toString().includes(searchTerm) ||
     item.ldr.toString().includes(searchTerm)
   );
 
-  const sortedData = [...filteredData].sort((a, b) => {
+  const sortedData = [...searchFilteredData].sort((a, b) => {
     const aValue = a[sortField];
     const bValue = b[sortField];
     
@@ -33,7 +43,7 @@ const DataTable: React.FC = () => {
     }
   });
 
-  const handleSort = (field: keyof typeof sensorData[0]) => {
+  const handleSort = (field: keyof typeof filteredData[0]) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -43,17 +53,16 @@ const DataTable: React.FC = () => {
   };
 
   const exportToCSV = () => {
-    const headers = ['S.No', 'Date', 'Time', 'Voltage (V)', 'LDR (%)', 'Temp (°C)', 'Humidity (%)'];
+    const headers = ['ID', 'Created At', 'Temperature (°C)', 'Humidity (%)', 'Voltage (V)', 'LDR (%)'];
     const csvContent = [
       headers.join(','),
       ...sortedData.map(row => [
-        row.sNo,
-        row.date,
-        row.time,
+        row.id,
+        row.created_at,
+        row.temp,
+        row.humidity,
         row.voltage,
-        row.ldr,
-        row.temperature,
-        row.humidity
+        row.ldr
       ].join(','))
     ].join('\n');
 
@@ -66,6 +75,24 @@ const DataTable: React.FC = () => {
     window.URL.revokeObjectURL(url);
   };
 
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <h1 className="text-2xl font-bold text-red-900 mb-2">Error Loading Data</h1>
+          <p className="text-red-700 mb-4">{error}</p>
+          <button
+            onClick={refetch}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4 inline mr-2" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -75,13 +102,30 @@ const DataTable: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900">Raw Sensor Data</h1>
             <p className="text-gray-600 mt-1">Complete dataset with filtering and export capabilities</p>
           </div>
-          <button
-            onClick={exportToCSV}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </button>
+          <div className="flex items-center gap-4">
+            <DataFilter 
+              selectedCount={selectedCount}
+              onCountChange={setSelectedCount}
+              isLoading={isLoading}
+              compact={true}
+            />
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={refetch}
+                disabled={isLoading}
+                className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50 transition-colors"
+              >
+                <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+              </button>
+              <button
+                onClick={exportToCSV}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -100,7 +144,7 @@ const DataTable: React.FC = () => {
           </div>
           <div className="flex items-center text-sm text-gray-600">
             <Filter className="w-4 h-4 mr-2" />
-            Showing {sortedData.length} of {sensorData.length} records
+            Showing {sortedData.length} of {filteredData.length} records
           </div>
         </div>
       </div>
@@ -113,21 +157,15 @@ const DataTable: React.FC = () => {
               <tr>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('sNo')}
+                  onClick={() => handleSort('id')}
                 >
-                  S.No {sortField === 'sNo' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  ID {sortField === 'id' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('date')}
+                  onClick={() => handleSort('created_at')}
                 >
-                  Date {sortField === 'date' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
-                <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('time')}
-                >
-                  Time {sortField === 'time' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  Created At {sortField === 'created_at' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
@@ -143,9 +181,9 @@ const DataTable: React.FC = () => {
                 </th>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('temperature')}
+                  onClick={() => handleSort('temp')}
                 >
-                  Temp (°C) {sortField === 'temperature' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  Temp (°C) {sortField === 'temp' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
                 <th 
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
@@ -157,15 +195,12 @@ const DataTable: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {sortedData.map((row) => (
-                <tr key={row.sNo} className="hover:bg-gray-50 transition-colors">
+                <tr key={row.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {row.sNo}
+                    {row.id}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {row.date}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {row.time}
+                    {row.created_at}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -179,7 +214,7 @@ const DataTable: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                      {row.temperature}°C
+                      {row.temp}°C
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -198,7 +233,7 @@ const DataTable: React.FC = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
         <div className="flex items-center justify-between text-sm text-gray-600">
           <span>Showing all {sortedData.length} records</span>
-          <span>Data collected on {sensorData[0]?.date}</span>
+          <span>Data collected on {filteredData[0]?.created_at?.split(' ')[0] || 'N/A'}</span>
         </div>
       </div>
     </div>

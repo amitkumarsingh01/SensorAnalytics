@@ -12,7 +12,7 @@ import {
   BarChart,
   Bar
 } from 'recharts';
-import { sensorData, getTimeSeriesData } from '../data/sensorData';
+import { useSensorData } from '../hooks/useSensorData';
 
 interface ChartProps {
   title: string;
@@ -132,7 +132,7 @@ const Chart: React.FC<ChartProps> = ({
 };
 
 export const TemperatureChart: React.FC = () => {
-  const timeSeriesData = getTimeSeriesData(sensorData);
+  const { timeSeriesData } = useSensorData();
   return (
     <Chart
       title="Temperature Over Time"
@@ -145,7 +145,7 @@ export const TemperatureChart: React.FC = () => {
 };
 
 export const HumidityChart: React.FC = () => {
-  const timeSeriesData = getTimeSeriesData(sensorData);
+  const { timeSeriesData } = useSensorData();
   return (
     <Chart
       title="Humidity Over Time"
@@ -158,7 +158,7 @@ export const HumidityChart: React.FC = () => {
 };
 
 export const VoltageChart: React.FC = () => {
-  const timeSeriesData = getTimeSeriesData(sensorData);
+  const { timeSeriesData } = useSensorData();
   return (
     <Chart
       title="Voltage Over Time"
@@ -171,7 +171,7 @@ export const VoltageChart: React.FC = () => {
 };
 
 export const LDRChart: React.FC = () => {
-  const timeSeriesData = getTimeSeriesData(sensorData);
+  const { timeSeriesData } = useSensorData();
   return (
     <Chart
       title="LDR (Light) Over Time"

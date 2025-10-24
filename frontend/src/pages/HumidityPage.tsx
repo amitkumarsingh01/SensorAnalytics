@@ -1,11 +1,19 @@
 import React from 'react';
 import { HumidityChart } from '../components/Charts';
-import { sensorData, calculateAnalytics } from '../data/sensorData';
-import { Droplets, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { useSensorData } from '../hooks/useSensorData';
+import DataFilter from '../components/DataFilter';
+import { Droplets, TrendingUp, TrendingDown, Minus, RefreshCw } from 'lucide-react';
 
 const HumidityPage: React.FC = () => {
-  const analytics = calculateAnalytics(sensorData);
-  const latestReading = sensorData[sensorData.length - 1];
+  const { 
+    filteredData, 
+    analytics,
+    selectedCount,
+    setSelectedCount,
+    isLoading,
+    refetch
+  } = useSensorData();
+  const latestReading = filteredData[filteredData.length - 1];
 
   const StatCard: React.FC<{
     title: string;
@@ -45,13 +53,30 @@ const HumidityPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center">
-          <div className="p-3 bg-blue-500 rounded-lg mr-4">
-            <Droplets className="w-8 h-8 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="p-3 bg-blue-500 rounded-lg mr-4">
+              <Droplets className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Humidity Analytics</h1>
+              <p className="text-gray-600 mt-1">Detailed humidity monitoring and analysis</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Humidity Analytics</h1>
-            <p className="text-gray-600 mt-1">Detailed humidity monitoring and analysis</p>
+          <div className="flex items-center gap-4">
+            <DataFilter 
+              selectedCount={selectedCount}
+              onCountChange={setSelectedCount}
+              isLoading={isLoading}
+              compact={true}
+            />
+            <button
+              onClick={refetch}
+              disabled={isLoading}
+              className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
           </div>
         </div>
       </div>
@@ -62,7 +87,7 @@ const HumidityPage: React.FC = () => {
           <div>
             <h2 className="text-lg font-semibold mb-2">Current Humidity</h2>
             <p className="text-4xl font-bold">{latestReading?.humidity}%</p>
-            <p className="text-sm opacity-90 mt-1">Last updated: {latestReading?.time}</p>
+            <p className="text-sm opacity-90 mt-1">Last updated: {latestReading?.created_at}</p>
           </div>
           <div className="text-right">
             <p className="text-sm opacity-90">Status</p>
@@ -114,36 +139,36 @@ const HumidityPage: React.FC = () => {
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600">Below 50%</span>
-                <span className="font-medium">{sensorData.filter(d => d.humidity < 50).length} readings</span>
+                <span className="font-medium">{filteredData.filter(d => d.humidity < 50).length} readings</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-red-500 h-2 rounded-full" 
-                  style={{ width: `${(sensorData.filter(d => d.humidity < 50).length / sensorData.length) * 100}%` }}
+                  style={{ width: `${(filteredData.filter(d => d.humidity < 50).length / filteredData.length) * 100}%` }}
                 ></div>
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600">50% - 60%</span>
-                <span className="font-medium">{sensorData.filter(d => d.humidity >= 50 && d.humidity <= 60).length} readings</span>
+                <span className="font-medium">{filteredData.filter(d => d.humidity >= 50 && d.humidity <= 60).length} readings</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-yellow-500 h-2 rounded-full" 
-                  style={{ width: `${(sensorData.filter(d => d.humidity >= 50 && d.humidity <= 60).length / sensorData.length) * 100}%` }}
+                  style={{ width: `${(filteredData.filter(d => d.humidity >= 50 && d.humidity <= 60).length / filteredData.length) * 100}%` }}
                 ></div>
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600">Above 60%</span>
-                <span className="font-medium">{sensorData.filter(d => d.humidity > 60).length} readings</span>
+                <span className="font-medium">{filteredData.filter(d => d.humidity > 60).length} readings</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-green-500 h-2 rounded-full" 
-                  style={{ width: `${(sensorData.filter(d => d.humidity > 60).length / sensorData.length) * 100}%` }}
+                  style={{ width: `${(filteredData.filter(d => d.humidity > 60).length / filteredData.length) * 100}%` }}
                 ></div>
               </div>
             </div>
