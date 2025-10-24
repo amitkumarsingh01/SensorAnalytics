@@ -11,8 +11,10 @@ import {
 } from 'lucide-react';
 import { useSensorData } from '../hooks/useSensorData';
 import { useWeatherData } from '../hooks/useWeatherData';
+import { useOpenWeather } from '../hooks/useOpenWeather';
 import DataFilter from '../components/DataFilter';
 import WeatherWidget from '../components/WeatherWidget';
+import WeatherForecast from '../components/WeatherForecast';
 
 const Dashboard: React.FC = () => {
   const { 
@@ -31,6 +33,12 @@ const Dashboard: React.FC = () => {
     error: weatherError, 
     refetch: refetchWeather 
   } = useWeatherData();
+
+  const { 
+    weatherData: openWeatherData, 
+    isLoading: openWeatherLoading, 
+    error: openWeatherError
+  } = useOpenWeather();
 
   const StatCard: React.FC<{
     title: string;
@@ -119,13 +127,20 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Weather Widget */}
-      <WeatherWidget 
-        weatherData={weatherData}
-        isLoading={weatherLoading}
-        error={weatherError}
-        onRefresh={refetchWeather}
-      />
+      {/* Weather Widgets */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <WeatherWidget 
+          weatherData={weatherData}
+          isLoading={weatherLoading}
+          error={weatherError}
+          onRefresh={refetchWeather}
+        />
+        <WeatherForecast 
+          weatherData={openWeatherData}
+          isLoading={openWeatherLoading}
+          error={openWeatherError}
+        />
+      </div>
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

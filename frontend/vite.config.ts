@@ -17,6 +17,40 @@ export default defineConfig({
           });
         },
       },
+      '/api/openweather': {
+        target: 'https://api.openweathermap.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/openweather/, '/data/3.0/onecall'),
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, _req, _res) => {
+            // Parse the original URL to get lat/lon parameters
+            const originalUrl = new URL(proxyReq.path, 'http://localhost:5176');
+            const lat = originalUrl.searchParams.get('lat');
+            const lon = originalUrl.searchParams.get('lon');
+            
+            // Build the correct OpenWeatherMap API URL
+            const apiUrl = new URL('/data/3.0/onecall', 'https://api.openweathermap.org');
+            apiUrl.searchParams.set('lat', lat || '12.933756');
+            apiUrl.searchParams.set('lon', lon || '77.625825');
+            apiUrl.searchParams.set('appid', process.env.VITE_OPENWEATHER_API_KEY || 'a553ca1c4b774cfdb9f71012252410');
+            apiUrl.searchParams.set('units', 'metric');
+            
+            proxyReq.path = apiUrl.pathname + apiUrl.search;
+          });
+        },
+      },
+      '/api/sensors': {
+        target: 'http://31.97.231.29:4354',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/sensors/, '/sensors'),
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, _req, _res) => {
+            // Add necessary headers for the sensor API
+            proxyReq.setHeader('accept', 'application/json');
+            proxyReq.setHeader('Content-Type', 'application/json');
+          });
+        },
+      },
     },
   },
 })

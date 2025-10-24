@@ -30,6 +30,8 @@ export const useSensorData = (): UseSensorDataReturn => {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch sensor data');
       console.error('Error fetching sensor data:', err);
+      // Set empty data array to prevent crashes
+      setData([]);
     } finally {
       setIsLoading(false);
     }
