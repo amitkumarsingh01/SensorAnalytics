@@ -120,13 +120,17 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Weather Widgets and Relay Control */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <WeatherForecast 
-          weatherData={openWeatherData}
-          isLoading={openWeatherLoading}
-          error={openWeatherError}
-        />
-        <RelayToggle />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
+          <WeatherForecast 
+            weatherData={openWeatherData}
+            isLoading={openWeatherLoading}
+            error={openWeatherError}
+          />
+        </div>
+        <div className="lg:col-span-1 h-full">
+          <RelayToggle voltage={filteredData[filteredData.length - 1]?.voltage} />
+        </div>
       </div>
 
       {/* Overview Stats */}
