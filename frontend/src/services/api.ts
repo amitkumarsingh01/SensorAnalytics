@@ -94,3 +94,35 @@ export class SensorAPI {
     return data.slice(0, count); // Take first N items since API returns latest first
   }
 }
+
+export interface RelayResponse {
+  status: boolean;
+}
+
+// Relay API
+const RELAY_API_URL = '/api/relay';
+
+export class RelayAPI {
+  static async setRelayStatus(status: boolean): Promise<RelayResponse> {
+    try {
+      const response = await fetch(RELAY_API_URL, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error setting relay status:', error);
+      throw error;
+    }
+  }
+}

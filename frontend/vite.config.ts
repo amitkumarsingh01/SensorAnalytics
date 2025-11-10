@@ -51,6 +51,18 @@ export default defineConfig({
           });
         },
       },
+      '/api/relay': {
+        target: 'http://31.97.231.29:4354',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/relay/, '/relay'),
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, _req, _res) => {
+            // Add necessary headers for the relay API
+            proxyReq.setHeader('accept', 'application/json');
+            proxyReq.setHeader('Content-Type', 'application/json');
+          });
+        },
+      },
     },
   },
 })

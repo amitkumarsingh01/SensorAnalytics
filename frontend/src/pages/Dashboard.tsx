@@ -13,6 +13,7 @@ import { useSensorData } from '../hooks/useSensorData';
 import { useOpenWeather } from '../hooks/useOpenWeather';
 import DataFilter from '../components/DataFilter';
 import WeatherForecast from '../components/WeatherForecast';
+import RelayToggle from '../components/RelayToggle';
 
 const Dashboard: React.FC = () => {
   const { 
@@ -118,19 +119,14 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Weather Widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-        {/* <WeatherWidget 
-          weatherData={weatherData}
-          isLoading={weatherLoading}
-          error={weatherError}
-          onRefresh={refetchWeather}
-        /> */}
+      {/* Weather Widgets and Relay Control */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <WeatherForecast 
           weatherData={openWeatherData}
           isLoading={openWeatherLoading}
           error={openWeatherError}
         />
+        <RelayToggle />
       </div>
 
       {/* Overview Stats */}
