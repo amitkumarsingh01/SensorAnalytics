@@ -21,7 +21,7 @@ const RelayToggle: React.FC<RelayToggleProps> = ({ voltage }) => {
     setError(null);
 
     try {
-      await RelayAPI.setRelayStatus(newStatus);
+      await RelayAPI.setRelayStatus(!newStatus);
       setIsOn(newStatus);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update relay status');
